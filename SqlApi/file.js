@@ -33,7 +33,7 @@
         if (err) throw err;\
         count++;\
         if (count >= numItems) \{\
-            getContext().getResponse().setBody(count);\
+            getContext().getResponse().setBody(count);
         \} else \{\
             tryCreate(items[count], callback);\
         \}\
