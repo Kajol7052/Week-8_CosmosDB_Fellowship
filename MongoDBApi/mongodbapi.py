@@ -14,11 +14,6 @@ import os
 from bson.objectid import ObjectId
 
 
-def run_sample():
-    client = MongoClient("mongodb://crud-cosmosdb:5t1vUaoyE97UKvR97BnVXBgsOE9cMk7zV6GBfRz3m1Vu66ryb2uelPweAkMMBTVmkO0XhNw5zrjICqnwE7NE5A==@crud-cosmosdb.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000&appName=@crud-cosmosdb@")
-    db = client['Covid_DB']
-    con = db['Col_Covid']
-
 def insert_collection():
         insert = r.json()['raw_data'][0:20]
         con.insert_many(insert)
@@ -80,39 +75,13 @@ def aggregation():
 
 
 if __name__ == '__main__':
-    client = MongoClient("mongodb://crud-cosmosdb:5t1vUaoyE97UKvR97BnVXBgsOE9cMk7zV6GBfRz3m1Vu66ryb2uelPweAkMMBTVmkO0XhNw5zrjICqnwE7NE5A==@crud-cosmosdb.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000&appName=@crud-cosmosdb@")
-    db = client['Covid_DB']
-    con = db['Col_Covid']
-    #run_sample()
-    #limit()
-    #sort_collection_by_age()
-    #delete_collection()
-    #insert_collection()
-    #update_collection()
-    #find_collection()
+    client = MongoClient("MONGO_DB_CLIENT")
+    db = client['DATABASE']
+    con = db['CONTAINER']
+    limit()
+    sort_collection_by_age()
+    delete_collection()
+    insert_collection()
+    update_collection()
+    find_collection()
     aggregation()
-
-
-import pandas
-
-cursor = con.find()
-#print ("total docs in collection:", con.count_documents( {} ))
-#print ("total docs returned by find():", len(list(cursor)))
-lis = list(cursor)
-mongo_docs = lis[:50]
-series_obj = pandas.Series({"a key":"a value"})
-print ("series_obj:", type(series_obj))
-
-series_obj = pandas.Series( {"one":"index"} )
-series_obj.index = [ "one" ]
-print ("index:", series_obj.index)
-
-docs = pandas.DataFrame(columns=[])
-for num, doc in enumerate( mongo_docs ):
-    doc["_id"] = str(doc["_id"])       
-    doc_id = doc["_id"]
-    series_obj = pandas.Series( doc, name=doc_id )
-    docs = docs.append( series_obj )
-json_export = docs.to_json() # return JSON data
-print ("\nJSON data:", json_export)
-docs.to_json("object_rocket.json")
