@@ -5,10 +5,10 @@ import datetime
 import os
 
 settings = {
-    'host': os.environ.get('ACCOUNT_HOST', 'https://cosmos-advance.documents.azure.com:443/'),
-    'master_key': os.environ.get('ACCOUNT_KEY', 'GqSuilSvlONTLgdqfPidyTjSnUXLwzfbQ8wBPTQpBFpXZAAkNtIDXPADyswiTqmN9aSoj1m0h7Sc0zn55RnZyg=='),
-    'database_id': os.environ.get('COSMOS_DATABASE', 'Updated_Covid_DB2'),
-    'container_id': os.environ.get('COSMOS_CONTAINER', 'Covid_Container8'),
+    'host': os.environ.get('ACCOUNT_HOST', 'HOST'),
+    'master_key': os.environ.get('ACCOUNT_KEY', 'KEY'),
+    'database_id': os.environ.get('COSMOS_DATABASE', 'COSMOS_DB'),
+    'container_id': os.environ.get('COSMOS_CONTAINER', 'COSMOS_CON'),
 }
 HOST = settings['host']
 MASTER_KEY = settings['master_key']
@@ -43,10 +43,6 @@ def read_item(container, doc_id):
 
 def read_items(container):
     print('\n1.3 - Reading all items in a container\n')
-
-    # NOTE: Use MaxItemCount on Options to control how many items come back per trip to the server
-    #       Important to handle throttles whenever you are doing operations such as this that might
-    #       result in a 429 (throttled request)
     item_list = list(container.read_all_items(max_item_count=10))
 
     print('Found {0} items'.format(item_list.__len__()))
@@ -171,16 +167,7 @@ def run_sample():
         read_items(container)
         query_items(container, 'SalesOrder1')
         replace_item(container, 'SalesOrder1')
-        #upsert_item(container, 'SalesOrder1')
-        #delete_item(container, 'SalesOrder1')
-
-        # cleanup database after sample
-        #try:
-        #    client.delete_database(db)
-
-        #except exceptions.CosmosResourceNotFoundError:
-        #    pass
-
+        
     except exceptions.CosmosHttpResponseError as e:
         print('\nrun_sample has caught an error. {0}'.format(e.message))
 
@@ -222,46 +209,3 @@ new_item =   {
    }
 result = container.scripts.execute_stored_procedure(sproc=created_sproc,params=[[new_item]], partition_key=new_id)
 print(result)
-
-import azure.cosmos.cosmos_client as cosmos_client
-
-with open('./temp/udfTax.js') as file:
-    file_contents = file.read()
-udf_definition = {
-    'id': 'Tax',
-    'serverScript': file_contents,
-}
-client = cosmos_client.CosmosClient(HOST, MASTER_KEY)
-database = client.get_database_client(DATABASE_ID)
-container = database.get_container_client(CONTAINER_ID)
-udf = container.scripts.create_user_defined_function(udf_definition)
-print("UDF Created")
-
-#results = list(container.query_items('SELECT * FROM Incomes t WHERE udf.Tax(t.income) > 20000'))
-results = list(container.query_items({"query":"SELECT * FROM Incomes t WHERE udf.Tax(t.income) > 20000","parameters":{"enableCrossPartitionQuery":True}}))
-#results = list(container.query_items({"query":"SELECT * FROM Incomes "}))
-
-print(results)
-
-import azure.cosmos.cosmos_client as cosmos_client
-import azure.cosmos.documents as documents
-with open('./temp/trgPreValidateToDoItemTimestamp.js') as file:
-    file_contents = file.read()
-
-trigger_definition = {
-    'id': 'trgPreValidateToDoItemTimestamp3',
-    'serverScript': file_contents,
-    'triggerType': documents.TriggerType.Pre,
-    'triggerOperation': documents.TriggerOperation.All
-}
-client = cosmos_client.CosmosClient(HOST, MASTER_KEY)
-database = client.get_database_client(DATABASE_ID)
-container = database.get_container_client(CONTAINER_ID)
-trigger = container.scripts.create_trigger(trigger_definition)
-
-import uuid
-
-new_id= str(uuid.uuid4())
-item = {'id':new_id,'category': 'Personal', 'name': 'Groceries',
-        'description': 'Pick up hello', 'isComplete': False}
-container.create_item(item, {'pre_trigger_include': 'trgPreValidateToDoItemTimestamp2'})
